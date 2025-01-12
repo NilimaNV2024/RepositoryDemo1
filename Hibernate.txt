@@ -1,0 +1,216 @@
+Hibernate1.0:
+
+Hibernate configutration hibernate.cfg.xml file:
+How To install XML?
+Go to help-> market place -> XML -> Eclipse xml editors & tools 3.15
+
+Connection properties:
+1_driver
+2)url
+3)username
+4)password
+
+Hibernate properties:
+1)dialect: allows commands as per requirements, converts datatype of java object into DB datatypes
+2) hbm2ddl.auto
+3)show_sql
+
+Javabased Hibernate3.0 n above:
+
+get()				load()
+
+Eager loading			Lazy loading
+Actual Data			Proxy Data
+return null			ObjectNotFoundException
+Not sure about data		Sure about data
+Always hit DB			hits DB whenever requires
+
+
+Package org.hibernate.cfg
+Class Environment
+java.lang.Object
+org.hibernate.cfg.Environment
+All Implemented Interfaces:
+AvailableSettings, AvailableSettings
+public final class Environment
+extends Object
+implements AvailableSettings
+Provides access to configuration info passed in Properties objects.
+
+-------------------------14-05-24----------------------------------------------------------------------------
+openSession()       		getCurrentSession()
+
+1)new session object.		1)First time will create new sesion, but then for second time it will refer to first one
+				For this we need to enable current session context class.
+				map.put(Environment.CURRENT_SESSION_CONTEXT_CLASS,"thread");
+
+hbm2ddl.auto--> create, update show the tables
+@Id
+@GeneratedValue(strategy=GenerationType.IDENTITY)  --------It is for single table
+private int id.
+
+@Id
+@GeneratedValue(strategy=GenerationType.AUTO)  --------It is for multiple table
+private int id.
+-------------------------------------15-05-24----------------------------------------
+
+1st level cache
+2nd level cache
+
+1) To enable 2nd level cache, we need vendors(EHcache(sf4j,cache,ehcache), JBoss)
+2) For this we need to add property (cacheRegionFactory) & set value
+3) concurancy strategy & need to add @Cache on Entity classes
+
+@Column(name="Empoyee_id", nullable): you need to set it nullable= false, by default it is true.
+insertable, updatable, length
+DirtyChecking: unwanted checking of column attribute while inserting/updating.
+To avoid it we use class level aanotations
+@DynamicInsert & @DynamicUpdate
+
+PRACTCAL:
+checking how many times query get fired for same & different sessions.
+
+Now Enable 2nd level cache: take jars from required/lib/optional/ehcache floder
+set cache region factory property-> ehcache-> internal-> cachefactory
+ 
+fomat_sql set in property
+
+@Entity
+@Cache(usage=CacheConcurarencySrategy.Read_WRITE)
+class Student{}
+
+evictAll();
+@DynamicUpdate(value=true), @DynamicInsert(value=true)
+@Column(nullable=false), @Column(insertable=false)
+
+PARAMETERIZED CONSTRUCTOR IN YOUR ENTITY CLASS--> InstanciationException.. Class.newInstance() methods instantiate the entity class & it requires No-arg 
+cponstructor
+
+hibernatepract DB.
+---------------------------------------OneToOneMapping Code-----------------------------------------------------------------------------
+
+SessionFactory sf = HibernateUtil.getConnection();
+	
+	@Override
+	public void addStudentWithAddress() {
+		
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		Student stud = new Student();
+		System.out.println("Enter Student name:");
+		stud.setStudentname(sc.next());
+		Address address = new Address();
+		System.out.println("Enter city:");
+		address.setCity(sc.next());
+		System.out.println("Enter Pincode:");
+		address.setPincode(sc.nextLong());
+		stud.setAddress(address);
+		
+		s.save(stud);
+		s.beginTransaction().commit();
+		System.out.println("Successfully Inserted!!");
+	}
+
+	@Override
+	public void getStudentWithAddress() {
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Student id:");
+		
+		Student student = s.get(Student.class, sc.nextInt());
+		if(student != null) {
+			
+			System.out.println(student);
+		} else {
+			System.out.println("Invalid Id..");
+		}
+		
+	}
+
+	@Override
+	public void updateStudentOnly() {
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Student id:");
+		
+		Student student = s.get(Student.class, sc.nextInt());
+		if(student != null) {
+			System.out.println("Enter new name:");
+			student.setStudentname(sc.next());
+			s.update(student);
+			s.beginTransaction().commit();
+		}
+		
+	}
+
+	@Override
+	public void updateAddressOnly() {
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Student id:");
+		
+		Student student = s.get(Student.class, sc.nextInt());
+		if(student != null) {
+			Address add = student.getAddress();
+			System.out.println("Enter city:");
+			add.setCity(sc.next());
+			s.update(add);
+			s.beginTransaction().commit();
+		}
+		
+	}
+
+	@Override
+	public void deleteStudentwithAddress() {
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Student id:");
+		
+		Student student = s.get(Student.class, sc.nextInt());
+		if(student != null) {
+			
+			s.delete(student);
+			s.beginTransaction().commit();
+			System.out.println("Successfully Deleted!!");
+		}
+		
+	}
+
+	@Override
+	public void deleteStudentOnly() {
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Student id:");
+		
+		Student student = s.get(Student.class, sc.nextInt());
+		if(student != null) {
+			
+			student.setAddress(null);
+			s.delete(student);
+			s.beginTransaction().commit();
+			System.out.println("Successfully Deleted!!");
+			
+		}
+		
+		
+	}
+
+	@Override
+	public void deleteAddressOnly() {
+		
+		Session s = sf.openSession();
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Student id:");
+		
+		Student student = s.get(Student.class, sc.nextInt());
+		if(student != null) {
+			
+			Address add = student.getAddress();
+			
+			student.setAddress(null);
+			s.delete(add);
+		 
+			s.beginTransaction().commit();
+			System.out.println("Successfully Deleted!!");
+		}
+	}
